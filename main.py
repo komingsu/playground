@@ -346,7 +346,9 @@ def train(args):
                     Y = Y.unsqueeze(1).repeat(1, N).reshape(-1)
                     M = M.unsqueeze(1).repeat(1, N).reshape(-1)
 
-                    loss_contrastive = modality_aware_nt_xent_loss(latent_z, Y, M)
+                    loss_contrastive = semantic_contrastive_loss(
+                        latent_z, Y, M, cross_modal_weight=config.CONTRASTIVE_CROSS_MODAL_WEIGHT
+                    )
                 else:
                     # --- EEGPT Teacher (58채널 input) ---
                     with torch.no_grad():
@@ -520,7 +522,14 @@ def train(args):
           print(f"Accuracy: {acc:.4f}, F1 Score: {f1:.4f}, Recall: {recall:.4f}, Precision: {precision:.4f}, AUC: {auc:.4f}")
       
       pbar.update(1)
-      
+
+  return {
+      "best_acc": best_acc,
+      "best_f1": best_f1,
+      "best_recall": best_recall,
+      "best_precision": best_precision,
+      "best_auc": best_auc,
+  }
 
 if __name__ == "__main__":
   device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Specify the device here

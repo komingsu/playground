@@ -93,6 +93,31 @@ def modality_aware_nt_xent_loss(z, labels, modalities, temperature=0.07, alpha=0
     loss = -mean_log_prob_pos.mean()
     return loss
 
+def semantic_contrastive_loss(z, labels, modalities, temperature=0.07, cross_modal_weight=None):
+    """Enhanced supervised contrastive loss emphasizing cross-modality pairs."""
+    if cross_modal_weight is None:
+        cross_modal_weight = config.CONTRASTIVE_CROSS_MODAL_WEIGHT
+
+    z = F.normalize(z, dim=1)
+    sim = torch.matmul(z, z.T) / temperature
+    sim = sim - torch.max(sim, dim=1, keepdim=True)[0].detach()
+
+    labels = labels.view(-1, 1)
+    modalities = modalities.view(-1, 1)
+
+    # positive pairs: same class
+    pos_mask = torch.eq(labels, labels.T).float()
+    pos_mask.fill_diagonal_(0)
+
+    # emphasize cross modality pairs
+    cross_mask = torch.ne(modalities, modalities.T).float()
+    pos_mask = pos_mask * (1 + cross_modal_weight * cross_mask)
+
+    exp_sim = torch.exp(sim) * (1 - torch.eye(z.size(0), device=z.device))
+    log_prob = sim - torch.log(exp_sim.sum(dim=1, keepdim=True) + 1e-8)
+    mean_log_prob_pos = (pos_mask * log_prob).sum(1) / (pos_mask.sum(1) + 1e-8)
+    return -mean_log_prob_pos.mean()
+
 class CenterLoss(nn.Module):
     def __init__(self, num_classes, feat_dim, device):
         super(CenterLoss, self).__init__()
