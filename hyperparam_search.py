@@ -18,8 +18,12 @@ def run_search(param_grid, device):
         })
 
         args = argparse.Namespace(device=device, subjects=config.SUB)
-        metrics = train(args)
-        acc = metrics.get('best_acc', 0)
+        try:
+            metrics = train(args)
+            acc = metrics.get('best_acc', 0)
+        except Exception as e:
+            print(f"Training failed: {e}")
+            acc = 0
         results.append((params, acc))
 
         if acc > best_acc:
