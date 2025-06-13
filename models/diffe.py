@@ -244,8 +244,14 @@ class Decoder(nn.Module):
         dn11, dn22, dn33 = down_ddpm
 
         # Up sampling
-        up1 = self.up1(torch.cat([dn3, dn33.detach()], 1))
-        up2 = self.up2(torch.cat([up1, dn22.detach()], 1))
+        up1 = self.up1(
+            torch.cat([dn3, dn33.detach()], 1),
+            target_size=dn22.shape[-1],
+        )
+        up2 = self.up2(
+            torch.cat([up1, dn22.detach()], 1),
+            target_size=dn11.shape[-1],
+        )
 
         # ⚡ 여기가 핵심 수정
         up2 = F.interpolate(up2, size=self.pool(x0).shape[-1], mode='nearest')

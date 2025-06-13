@@ -123,6 +123,9 @@ LOSS_WEIGHTS = {
     'gamma': 0.01,        # semantic reconstruction loss weight (기존 0.05에서 감소)
 }
 
+# Semantic contrastive loss 추가 설정
+CONTRASTIVE_CROSS_MODAL_WEIGHT = 1.5  # 다른 모달리티 간 positive pair 가중치
+
 # ArcFace parameters
 ARCFACE_PARAMS = {
     'margin': 0.2,        # angular margin (기존 0.5에서 감소)
